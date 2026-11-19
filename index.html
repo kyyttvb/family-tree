@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emma's Family Tree — Interactive Listening Game</title>
+<link rel="icon" type="image/png" href="favicon.png">
+  <!-- Google Fonts: Fredoka & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --wood-deep: #5A2D12;
+      --wood-main: #7C4422;
+      --wood-warm: #A35E2E;
+      --gold: #F59E0B;
+      --gold-bright: #FBBF24;
+      --teal: #0D9488;
+      --emerald: #10B981;
+      --coral: #F43F5E;
+      --sky: #0284C7;
+      --glass-bg: rgba(255, 255, 255, 0.86);
+      --glass-border: rgba(255, 255, 255, 0.92);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      width: 100%;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #2D1B10;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background-color: #7DD3FC;
+    }
+
+    .font-display {
+      font-family: 'Fredoka', 'Nunito', sans-serif;
+    }
+
+    /* ============================================================
+       BRIGHT, SUNNY, LUSH BLURRED PARK BACKGROUND
+       ============================================================ */
+    .park-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 55% at 15% 10%, rgba(254, 240, 138, 0.95) 0%, rgba(253, 224, 71, 0.35) 45%, transparent 72%),
+        radial-gradient(ellipse 65% 55% at 88% 12%, rgba(125, 211, 252, 0.9) 0%, transparent 65%),
+        radial-gradient(ellipse 85% 60% at 50% 98%, rgba(34, 197, 94, 0.85) 0%, rgba(74, 222, 128, 0.65) 45%, transparent 80%),
+        linear-gradient(160deg, #BAE6FD 0%, #A7F3D0 38%, #6EE7B7 68%, #34D399 100%);
+    }
+
+    .park-scenery-svg {
+      position: absolute;
+      inset: -44px;
+      width: calc(100% + 88px);
+      height: calc(100% + 88px);
+      filter: blur(22px) saturate(1.25);
+      opacity: 0.92;
+      pointer-events: none;
+    }
+
+    /* Vibrant floating sunlit bokeh */
+    .bokeh-layer {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bokeh {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(10px);
+      animation: floatBokeh 14s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBokeh {
+      0% { transform: translate(0px, 0px) scale(1); opacity: 0.52; }
+      50% { transform: translate(20px, -16px) scale(1.1); opacity: 0.78; }
+      100% { transform: translate(-14px, 14px) scale(0.95); opacity: 0.48; }
+    }
+
+    /* ============================================================
+       CRISP GLASSMORPHIC PANELS & JOYFUL BUTTONS
+       ============================================================ */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 2px solid var(--glass-border);
+      box-shadow:
+        0 10px 28px rgba(15, 65, 50, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      box-shadow: 0 5px 15px rgba(5, 150, 105, 0.34);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow: 0 8px 20px rgba(5, 150, 105, 0.42);
+    }
+    .btn-primary:active { transform: translateY(0) scale(0.97); }
+
+    .btn-amber {
+      background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+      color: #451A03;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 5px 15px rgba(217, 119, 6, 0.32);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    }
+    .btn-amber:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+      box-shadow: 0 8px 20px rgba(217, 119, 6, 0.4);
+    }
+    .btn-amber:active { transform: translateY(0) scale(0.97); }
+
+    .btn-play-main {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+      color: #FFFFFF;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.38);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .btn-play-main:hover {
+      transform: scale(1.07);
+      filter: brightness(1.07);
+    }
+    .btn-play-main:active { transform: scale(0.96); }
+
+    .btn-soft {
+      background: rgba(255, 255, 255, 0.94);
+      color: #451A03;
+      border: 1.5px solid rgba(124, 68, 34, 0.22);
+      box-shadow: 0 2px 8px rgba(15, 65, 50, 0.08);
+      transition: all 0.15s ease;
+    }
+    .btn-soft:hover {
+      background: #FFFFFF;
+      border-color: #F59E0B;
+      transform: translateY(-1.5px);
+      box-shadow: 0 5px 12px rgba(217, 119, 6, 0.18);
+    }
+    .btn-soft:active { transform: translateY(0) scale(0.97); }
+
+    /* ============================================================
+       MAIN FULL-HEIGHT LAYOUT
+       ============================================================ */
+    .app-shell {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 12px 24px;
+      gap: 10px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* ============================================================
+       TOP PORTRAIT TRAY (LARGE CARDS + HORIZONTAL SLIDER)
+       ============================================================ */
+    .tray-dock {
+      border-radius: 22px;
+      padding: 8px 14px 10px;
+      flex-shrink: 0;
+    }
+
+    .tray-viewport-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tray-arrow-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .tray-scroll {
+      flex: 1 1 auto;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 14px 8px 8px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .tray-scroll::-webkit-scrollbar { display: none; }
+
+    .tray-track {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 150px;
+      width: max-content;
+    }
+
+    /* Styled Horizontal Range Slider */
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      padding: 2px 48px 0;
+    }
+
+    .custom-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #BAE6FD 0%, #A7F3D0 50%, #FDE68A 100%);
+      outline: none;
+      cursor: pointer;
+      box-shadow: inset 0 1px 3px rgba(15, 65, 50, 0.2);
+    }
+
+    .custom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 54px;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 3px 10px rgba(234, 88, 12, 0.42);
+      cursor: grab;
+      transition: transform 0.15s ease;
+    }
+    .custom-slider::-webkit-slider-thumb:hover { transform: scale(1.08); }
+    .custom-slider::-webkit-slider-thumb:active { cursor: grabbing; }
+
+    .custom-slider::-moz-range-thumb {
+      width: 54px;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 3px 10px rgba(234, 88, 12, 0.42);
+      cursor: grab;
+    }
+
+    /* ============================================================
+       LARGE PORTRAIT CARDS (TOP TRAY & INSIDE SLOTS)
+       ============================================================ */
+    .portrait-card {
+      position: relative;
+      width: 122px;
+      height: 148px;
+      flex: 0 0 auto;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
+      border: 2.5px solid #FCD34D;
+      box-shadow: 0 6px 16px rgba(120, 53, 15, 0.14);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 6px 5px;
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.22s ease,
+                  border-color 0.2s ease;
+    }
+
+    .portrait-card:active { cursor: grabbing; }
+
+    /* Lively hover pop & warm glow in tray */
+    .tray-track .portrait-card:hover {
+      transform: translateY(-10px) scale(1.08);
+      z-index: 30;
+      border-color: #F97316;
+      box-shadow:
+        0 16px 28px rgba(234, 88, 12, 0.28),
+        0 0 0 4px rgba(251, 191, 36, 0.55);
+    }
+
+    .portrait-card.selected-card {
+      transform: translateY(-10px) scale(1.07);
+      z-index: 31;
+      border-color: #0D9488;
+      box-shadow:
+        0 14px 26px rgba(13, 148, 136, 0.34),
+        0 0 0 4px rgba(45, 212, 191, 0.55);
+    }
+
+    .portrait-card.in-slot {
+      width: 100%;
+      height: 100%;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      padding: 3px 3px 2px;
+    }
+
+    .portrait-img-box {
+      width: 104px;
+      height: 108px;
+      border-radius: 13px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .portrait-card.in-slot .portrait-img-box {
+      width: 108px;
+      height: 110px;
+    }
+
+    .portrait-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      pointer-events: none;
+      display: block;
+    }
+
+    .portrait-name {
+      font-family: 'Fredoka', 'Nunito', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #451A03;
+      line-height: 1.15;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       ZOOMABLE & PANNABLE FAMILY TREE VIEWPORT
+       ============================================================ */
+    .tree-viewport {
+      position: relative;
+      flex: 0 0 auto;
+      height: 820px;
+      min-height: 760px;
+      width: 100%;
+      border-radius: 26px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.38);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.72);
+      box-shadow:
+        0 14px 36px rgba(15, 65, 50, 0.16),
+        inset 0 2px 10px rgba(255, 255, 255, 0.55);
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .tree-viewport.is-panning {
+      cursor: grabbing;
+    }
+
+    .tree-canvas-transform {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .tree-board {
+      position: relative;
+      width: 1320px;
+      padding: 44px 36px 40px;
+      border-radius: 28px;
+      background: rgba(255, 253, 245, 0.58);
+      border: 2.5px solid rgba(163, 94, 46, 0.25);
+      box-shadow: 0 18px 44px rgba(90, 45, 18, 0.12);
+    }
+
+    #tree-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: visible;
+    }
+
+    .tree-rows {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 44px;
+    }
+
+    .tree-row {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 14px;
+      align-items: center;
+    }
+
+    .slot-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Side badges inside the tree board */
+    .side-label {
+      position: absolute;
+      top: 14px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 3;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+    .side-label.dad {
+      left: 24px;
+      background: #E0F2FE;
+      color: #0369A1;
+      border: 1.5px solid #7DD3FC;
+    }
+    .side-label.mum {
+      right: 24px;
+      background: #FFE4E6;
+      color: #BE123C;
+      border: 1.5px solid #FDA4AF;
+    }
+
+    /* Floating Zoom Controls */
+    .zoom-controls {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 16px;
+    }
+
+    .zoom-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .pan-hint {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      z-index: 25;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #451A03;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       GENEROUSLY SIZED TREE SLOTS (CLEAR MALE/FEMALE SILHOUETTES)
+       ============================================================ */
+    .tree-slot {
+      position: relative;
+      width: 128px;
+      height: 152px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 249, 238, 0.92) 100%);
+      border: 2.5px dashed rgba(124, 68, 34, 0.45);
+      box-shadow:
+        0 8px 20px rgba(90, 45, 18, 0.12),
+        inset 0 2px 6px rgba(255, 255, 255, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      user-select: none;
+    }
+
+    .tree-slot[data-gender="male"]:not(.has-card) {
+      border-color: rgba(2, 132, 199, 0.55);
+      background: linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%);
+    }
+
+    .tree-slot[data-gender="female"]:not(.has-card) {
+      border-color: rgba(225, 29, 72, 0.48);
+      background: linear-gradient(180deg, #FFF1F2 0%, #FFE4E6 100%);
+    }
+
+    .tree-slot:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(90, 45, 18, 0.2);
+    }
+
+    .tree-slot.drag-over,
+    .tree-slot.selectable-target {
+      border-style: solid !important;
+      border-color: #F59E0B !important;
+      background: #FEF3C7 !important;
+      transform: scale(1.06);
+      box-shadow: 0 0 0 5px rgba(251, 191, 36, 0.42), 0 12px 26px rgba(217, 119, 6, 0.28);
+    }
+
+    .tree-slot.has-card {
+      border-style: solid;
+      border-color: #B45309;
+      padding: 4px;
+      background: #FFFFFF;
+    }
+
+    .tree-slot.locked-correct {
+      border: 3px solid #10B981 !important;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.28), 0 10px 22px rgba(16, 185, 129, 0.25);
+      cursor: default;
+    }
+
+    .tree-slot.wrong-shake {
+      border: 3px solid #F43F5E !important;
+      background: #FFF1F2 !important;
+      box-shadow: 0 0 0 5px rgba(244, 63, 94, 0.32);
+      animation: slotShake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes slotShake {
+      10%, 90% { transform: translateX(-4px); }
+      20%, 80% { transform: translateX(6px); }
+      30%, 50%, 70% { transform: translateX(-7px); }
+      40%, 60% { transform: translateX(7px); }
+    }
+
+    /* Golden "Me" badge on Emma's slot */
+    .me-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #FDE047 0%, #F59E0B 100%);
+      color: #451A03;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 2px 12px;
+      border-radius: 999px;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.42);
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    /* Vibrant Emerald Checkmark badge */
+    .correct-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #34D399 0%, #059669 100%);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.42);
+      z-index: 9;
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Silhouette inside empty slot */
+    .silhouette-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .silhouette-svg {
+      width: 76px;
+      height: 86px;
+      filter: drop-shadow(0 2px 2px rgba(255, 255, 255, 0.8));
+    }
+
+    .silhouette-svg.male-sil { fill: #0284C7; opacity: 0.78; }
+    .silhouette-svg.female-sil { fill: #E11D48; opacity: 0.72; }
+
+    /* ============================================================
+       AUDIO PROGRESS BAR
+       ============================================================ */
+    .audio-seek {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #FED7AA;
+      outline: none;
+      cursor: pointer;
+    }
+    .audio-seek::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #EA580C;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(234, 88, 12, 0.45);
+      cursor: pointer;
+    }
+    .audio-seek::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #EA580C;
+      border: 2.5px solid #FFFFFF;
+      cursor: pointer;
+    }
+
+    /* ============================================================
+       TOAST, FLYING CARD, MODALS & CONFETTI
+       ============================================================ */
+    .toast-banner {
+      position: fixed;
+      top: 76px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-16px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 65;
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 10px 28px rgba(15, 65, 50, 0.22);
+      transition: opacity 0.26s ease, transform 0.26s ease;
+    }
+    .toast-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .flying-card {
+      position: fixed;
+      z-index: 80;
+      pointer-events: none;
+      transition: transform 0.56s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.56s ease;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(15, 45, 35, 0.45);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      transform: translateY(16px) scale(0.96);
+      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .modal-backdrop.open .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .confetti-piece {
+      position: fixed;
+      top: -20px;
+      z-index: 95;
+      pointer-events: none;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateY(105vh) rotate(560deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       BRIGHT, SUNNY, LUSH BLURRED PARK BACKDROP
+       ============================================================ -->
+  <div class="park-backdrop" aria-hidden="true">
+    <svg class="park-scenery-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="brightSun" cx="16%" cy="10%" r="48%">
+          <stop offset="0%" stop-color="#FEF9C3" stop-opacity="1" />
+          <stop offset="45%" stop-color="#FDE047" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#FDE047" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="lushMeadow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#4ADE80" />
+          <stop offset="100%" stop-color="#16A34A" />
+        </linearGradient>
+      </defs>
+      <rect width="1440" height="900" fill="#BAE6FD" />
+      <rect width="1440" height="900" fill="url(#brightSun)" />
+      <!-- Sunlit park canopies -->
+      <circle cx="150" cy="230" r="220" fill="#34D399" opacity="0.72" />
+      <circle cx="400" cy="180" r="190" fill="#4ADE80" opacity="0.65" />
+      <circle cx="1170" cy="200" r="240" fill="#10B981" opacity="0.72" />
+      <circle cx="1370" cy="340" r="210" fill="#22C55E" opacity="0.7" />
+      <circle cx="810" cy="240" r="185" fill="#86EFAC" opacity="0.62" />
+      <!-- Warm sunlit park hills -->
+      <path d="M0 550 Q360 470 720 545 T1440 515 L1440 900 L0 900 Z" fill="url(#lushMeadow)" opacity="0.9" />
+      <path d="M520 900 Q690 700 760 545 Q820 700 1000 900 Z" fill="#FEF08A" opacity="0.45" />
+      <!-- Soft blossom accents -->
+      <circle cx="240" cy="640" r="95" fill="#FDBA74" opacity="0.42" />
+      <circle cx="1180" cy="670" r="110" fill="#FDA4AF" opacity="0.38" />
+    </svg>
+  </div>
+
+  <!-- Colorful floating bokeh lights -->
+  <div class="bokeh-layer" aria-hidden="true">
+    <div class="bokeh" style="width:170px;height:170px;top:4%;left:10%;background:radial-gradient(circle,rgba(254,240,138,0.85),transparent 72%);animation-delay:0s;"></div>
+    <div class="bokeh" style="width:120px;height:120px;top:14%;left:32%;background:radial-gradient(circle,rgba(253,186,116,0.65),transparent 72%);animation-delay:-4s;"></div>
+    <div class="bokeh" style="width:190px;height:190px;top:8%;right:12%;background:radial-gradient(circle,rgba(125,211,252,0.75),transparent 72%);animation-delay:-7s;"></div>
+    <div class="bokeh" style="width:145px;height:145px;bottom:16%;left:7%;background:radial-gradient(circle,rgba(110,231,183,0.72),transparent 72%);animation-delay:-2s;"></div>
+    <div class="bokeh" style="width:155px;height:155px;bottom:14%;right:9%;background:radial-gradient(circle,rgba(253,164,175,0.62),transparent 72%);animation-delay:-10s;"></div>
+  </div>
+
+  <!-- Toast feedback banner -->
+  <div id="toast-banner" class="toast-banner glass-panel" role="status" aria-live="polite"></div>
+
+  <!-- ============================================================
+       MAIN APPLICATION SHELL
+       ============================================================ -->
+  <div class="app-shell">
+
+    <!-- 1. CLEAN TOP BAR & SLEEK AUDIO PLAYER (NO EXTRA AUDIO BUTTONS) -->
+    <header class="glass-panel rounded-2xl px-4 py-2 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+      <!-- Title -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#F59E0B,#EA580C);box-shadow:0 4px 12px rgba(234,88,12,0.34);">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22v-9" />
+            <path d="M12 13C8.5 13 6 10.5 6 7.5C6 4.8 8.3 2.5 11.2 2.5C11.6 2.5 12 2.6 12 2.6C12 2.6 12.4 2.5 12.8 2.5C15.7 2.5 18 4.8 18 7.5C18 10.5 15.5 13 12 13Z" />
+            <path d="M9 17.5c1.5-.8 4.5-.8 6 0" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-display text-lg sm:text-xl font-bold leading-tight text-[#451A03]">Emma's Family Tree</h1>
+          <p class="text-[11px] sm:text-xs text-[#7C4422] font-bold">Listen to Emma and place each family member</p>
+        </div>
+      </div>
+
+      <!-- Clean Audio Player (ONLY Play/Pause, -5s, +5s, Progress Bar) -->
+      <div class="flex items-center gap-2 flex-1 min-w-[260px] max-w-[440px] bg-white/85 border-2 border-amber-200 rounded-2xl px-3 py-1.5 shadow-sm">
+        <button id="btn-rewind" class="btn-soft rounded-xl px-2.5 py-1 text-xs font-extrabold flex items-center gap-0.5 shrink-0" title="Back 5 seconds" aria-label="Rewind 5 seconds">
+          <svg class="w-3.5 h-3.5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5"/><path d="M18 17l-5-5 5-5"/></svg>
+          <span>5s</span>
+        </button>
+
+        <button id="btn-play" class="btn-play-main w-9 h-9 rounded-full flex items-center justify-center shrink-0" title="Play or Pause" aria-label="Play audio">
+          <svg id="icon-play" class="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+          <svg id="icon-pause" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        </button>
+
+        <button id="btn-forward" class="btn-soft rounded-xl px-2.5 py-1 text-xs font-extrabold flex items-center gap-0.5 shrink-0" title="Forward 5 seconds" aria-label="Forward 5 seconds">
+          <span>5s</span>
+          <svg class="w-3.5 h-3.5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17l5-5-5-5"/><path d="M6 17l5-5-5-5"/></svg>
+        </button>
+
+        <div class="flex-1 flex flex-col justify-center min-w-[90px] px-1">
+          <div class="flex items-center justify-between text-[11px] font-extrabold text-[#7C4422] mb-0.5">
+            <span id="audio-time-current">0:00</span>
+            <span id="audio-time-total">0:00</span>
+          </div>
+          <input id="audio-seek" type="range" min="0" max="100" value="0" step="0.1" class="audio-seek" aria-label="Audio progress" />
+        </div>
+      </div>
+
+      <!-- Right Action Buttons -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="btn-transcript" class="btn-soft rounded-xl px-3.5 py-2 text-xs sm:text-sm font-extrabold flex items-center gap-1.5" title="Open audio transcript">
+          <svg class="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Transcript</span>
+        </button>
+
+        <button id="btn-sfx" class="btn-soft rounded-xl p-2 flex items-center justify-center" title="Sound effects on/off" aria-label="Toggle sound effects">
+          <svg id="icon-sfx-on" class="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg id="icon-sfx-off" class="w-4 h-4 text-slate-400 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+
+        <button id="btn-check" class="btn-primary rounded-xl px-4 py-2 text-xs sm:text-sm font-extrabold flex items-center gap-2">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Check Answers</span>
+          <span id="progress-pill" class="bg-white/25 text-white px-2 py-0.5 rounded-full text-[11px] font-extrabold">0 / 17</span>
+        </button>
+
+        <button id="btn-reset" class="btn-soft rounded-xl px-3 py-2 text-xs sm:text-sm font-extrabold flex items-center gap-1" title="Start over">
+          <svg class="w-4 h-4 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          <span class="hidden md:inline">Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. LARGE FAMILY PORTRAITS AT THE TOP (ABOVE THE TREE) -->
+    <section class="glass-panel tray-dock" aria-label="Family member cards">
+      <div class="flex items-center justify-between px-2">
+        <span class="font-display text-sm font-semibold text-[#5A2D12]">
+          Family Members <span id="tray-count" class="text-teal-700 font-bold">(17 left)</span>
+        </span>
+        <span class="text-xs font-bold text-[#7C4422] hidden sm:inline">
+          Drag a card onto the tree, or click a card and click a space.
+        </span>
+      </div>
+
+      <div class="tray-viewport-row">
+        <button id="tray-left" class="btn-soft tray-arrow-btn" aria-label="Scroll left" title="Scroll left">
+          <svg class="w-5 h-5 text-[#7C4422]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+
+        <div id="tray-scroll" class="tray-scroll">
+          <div id="tray-track" class="tray-track"></div>
+        </div>
+
+        <button id="tray-right" class="btn-soft tray-arrow-btn" aria-label="Scroll right" title="Scroll right">
+          <svg class="w-5 h-5 text-[#7C4422]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="slider-wrap">
+        <input id="tray-slider" type="range" min="0" max="100" value="0" step="0.5" class="custom-slider" aria-label="Slide left or right through family members" />
+      </div>
+    </section>
+
+    <!-- 3. ZOOMABLE & PANNABLE FAMILY TREE VIEWPORT (ZOOMED IN BY DEFAULT) -->
+    <main id="tree-viewport" class="tree-viewport">
+      <!-- Subtle pan/zoom tip -->
+      <div class="pan-hint glass-panel hidden sm:block">
+        Drag background to move &bull; Scroll to zoom
+      </div>
+
+      <!-- Floating Zoom Controls -->
+      <div class="zoom-controls glass-panel" aria-label="Zoom controls">
+        <button id="btn-zoom-out" class="btn-soft zoom-btn" title="Zoom out" aria-label="Zoom out">&minus;</button>
+        <span id="zoom-percent" class="text-xs font-extrabold text-[#451A03] min-w-[46px] text-center">135%</span>
+        <button id="btn-zoom-in" class="btn-soft zoom-btn" title="Zoom in" aria-label="Zoom in">+</button>
+        <button id="btn-zoom-fit" class="btn-amber rounded-xl px-3 h-[34px] text-xs font-extrabold ml-1" title="Fit whole tree">Fit All</button>
+      </div>
+
+      <!-- Transformed Tree Board -->
+      <div id="tree-canvas-transform" class="tree-canvas-transform">
+        <div id="tree-board" class="tree-board">
+          <div class="side-label dad">Dad's Side</div>
+          <div class="side-label mum">Mum's Side</div>
+
+          <!-- Rich Chestnut Brown SVG Connectors -->
+          <svg id="tree-svg" aria-hidden="true"></svg>
+
+          <!-- 4 Generation Rows (12-column grid, zero crossing lines) -->
+          <div class="tree-rows">
+            <!-- Generation 1: Great-Grandparents (Peter's parents) -->
+            <div class="tree-row" data-gen="1">
+              <div class="slot-cell" style="grid-column: 2 / span 2;">
+                <div class="tree-slot" data-slot-id="robert" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 4 / span 2;">
+                <div class="tree-slot" data-slot-id="alice" data-gender="female"></div>
+              </div>
+            </div>
+
+            <!-- Generation 2: Grandparents -->
+            <div class="tree-row" data-gen="2">
+              <div class="slot-cell" style="grid-column: 3 / span 2;">
+                <div class="tree-slot" data-slot-id="peter" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 5 / span 2;">
+                <div class="tree-slot" data-slot-id="mary" data-gender="female"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 7 / span 2;">
+                <div class="tree-slot" data-slot-id="george" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 9 / span 2;">
+                <div class="tree-slot" data-slot-id="helen" data-gender="female"></div>
+              </div>
+            </div>
+
+            <!-- Generation 3: Parents, Aunts & Uncles -->
+            <div class="tree-row" data-gen="3">
+              <div class="slot-cell" style="grid-column: 1 / span 2;">
+                <div class="tree-slot" data-slot-id="david" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 3 / span 2;">
+                <div class="tree-slot" data-slot-id="lucy" data-gender="female"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 5 / span 2;">
+                <div class="tree-slot" data-slot-id="john" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 7 / span 2;">
+                <div class="tree-slot" data-slot-id="sarah" data-gender="female"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 9 / span 2;">
+                <div class="tree-slot" data-slot-id="mike" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 11 / span 2;">
+                <div class="tree-slot" data-slot-id="kate" data-gender="female"></div>
+              </div>
+            </div>
+
+            <!-- Generation 4: Children & Cousins -->
+            <div class="tree-row" data-gen="4">
+              <div class="slot-cell" style="grid-column: 1 / span 2;">
+                <div class="tree-slot" data-slot-id="lily" data-gender="female"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 3 / span 2;">
+                <div class="tree-slot" data-slot-id="ben" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 5 / span 2;">
+                <div class="tree-slot" data-slot-id="emma" data-gender="female" data-is-me="true"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 7 / span 2;">
+                <div class="tree-slot" data-slot-id="tom" data-gender="male"></div>
+              </div>
+              <div class="slot-cell" style="grid-column: 10 / span 2;">
+                <div class="tree-slot" data-slot-id="sophie" data-gender="female"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================================================
+       TRANSCRIPT OVERLAY MODAL
+       ============================================================ -->
+  <div id="transcript-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="transcript-title">
+    <div class="modal-card glass-panel rounded-3xl max-w-2xl w-full max-h-[84vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-amber-200/80 bg-white/80">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-xl flex items-center justify-center bg-teal-600 text-white shadow">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </span>
+          <div>
+            <h2 id="transcript-title" class="font-display text-xl font-bold text-[#451A03]">Audio Transcript</h2>
+            <p class="text-xs font-bold text-teal-700">Read along while listening to Emma</p>
+          </div>
+        </div>
+        <button id="btn-close-transcript" class="btn-soft rounded-full w-9 h-9 flex items-center justify-center text-xl font-bold" aria-label="Close transcript" title="Close">
+          &times;
+        </button>
+      </div>
+
+      <div class="px-6 py-5 overflow-y-auto space-y-3.5 text-[15px] leading-relaxed text-[#2D1B10] font-semibold">
+        <p>Hello! My name is Emma. I am 12 years old. Let me tell you about my family.</p>
+        <p>I live with my parents. My father's name is John. He is 40 years old. He is a doctor. My mother's name is Sarah. She is 38 years old. She is a teacher. John is Sarah's husband, and Sarah is John's wife.</p>
+        <p>I have one brother. His name is Tom. He is 8 years old. We are siblings.</p>
+        <p class="text-sky-700 font-extrabold">Now, let's talk about my dad's side of the family.</p>
+        <p>My father's parents are Peter and Mary. Peter is my grandfather. He is 68 years old. He is a driver. Mary is my grandmother. She is 65 years old. She is a cook.</p>
+        <p>My great-grandfather's name is Robert. He is 88 years old. He is Peter's father. My great-grandmother's name is Alice. She is 85 years old. She is Peter's mother.</p>
+        <p>My father's sister is my aunt. Her name is Lucy. She is 36 years old. She is a nurse. Her husband is David. He is my uncle. He is 39 years old and he is a police officer.</p>
+        <p>Lucy and David have two children. Their daughter is Lily. She is 10 years old. Their son is Ben. He is 6 years old. Lily and Ben are my cousins.</p>
+        <p class="text-rose-700 font-extrabold">Now, let's talk about my mum's side of the family.</p>
+        <p>My mother's parents are George and Helen. George is my grandfather. He is 67 years old. He is a teacher. Helen is my grandmother. She is 64 years old. She is a doctor.</p>
+        <p>My mother's brother is my uncle. His name is Mike. He is 35 years old. He is a driver. His wife is Kate. She is my aunt. She is 34 years old and she is a nurse.</p>
+        <p>Mike and Kate have one daughter. Her name is Sophie. She is 9 years old. She is my cousin.</p>
+        <p>My father's parents are my mother's parents-in-law. My mother's parents are my father's parents-in-law.</p>
+        <p class="text-emerald-700 font-extrabold">I love my big family!</p>
+      </div>
+
+      <div class="px-6 py-3 border-t border-amber-200/70 bg-white/80 flex justify-end">
+        <button id="btn-close-transcript-bottom" class="btn-primary rounded-xl px-5 py-2 text-sm font-extrabold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VICTORY CELEBRATION MODAL
+       ============================================================ -->
+  <div id="victory-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="victory-title">
+    <div class="modal-card glass-panel rounded-3xl max-w-md w-full p-7 text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#FDE047,#F59E0B);box-shadow:0 8px 20px rgba(217,119,6,0.4);">
+        <svg class="w-9 h-9 text-[#451A03]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      </div>
+      <h2 id="victory-title" class="font-display text-3xl font-bold text-[#451A03] mb-2">Well Done!</h2>
+      <p class="text-base text-[#7C4422] font-bold mb-6 leading-relaxed">
+        You completed Emma's Family Tree! All 17 family members are in the right place.
+      </p>
+      <div class="flex items-center justify-center gap-3">
+        <button id="btn-victory-view" class="btn-soft rounded-xl px-4 py-2.5 text-sm font-extrabold">View Tree</button>
+        <button id="btn-play-again" class="btn-primary rounded-xl px-6 py-2.5 text-sm font-extrabold">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden HTML5 Audio Element -->
+  <audio id="story-audio" preload="metadata"></audio>
+
+  <script>
+    /* ============================================================
+       DATA: 17 FAMILY MEMBERS & TREE CONNECTIONS
+       ============================================================ */
+    const FAMILY_MEMBERS = [
+      { id: 'robert', name: 'Robert', gender: 'male',   driveId: '1GOi3Cecxn59nA30kfVPynikFIkWplcBZ' },
+      { id: 'alice',  name: 'Alice',  gender: 'female', driveId: '19mk2fdPYD_EgnMNB0PsK8VMTpi6OkQB5' },
+      { id: 'peter',  name: 'Peter',  gender: 'male',   driveId: '1Zk6Y47dea3TUFXG2OZvvvOw2jus3YpOT' },
+      { id: 'mary',   name: 'Mary',   gender: 'female', driveId: '1dOhuaEy0gzwADw0iwSDsBcdU1_FAnV3q' },
+      { id: 'george', name: 'George', gender: 'male',   driveId: '1grJqLdn2TPMcBYeDx-qyikOWHp2zPfJj' },
+      { id: 'helen',  name: 'Helen',  gender: 'female', driveId: '1ZwNt72YLK1ZWwOPWQFy4hz3mKBT9G_dN' },
+      { id: 'david',  name: 'David',  gender: 'male',   driveId: '1UNiP7aqe2hEZXii-GU_bNHz5mtq52Qds' },
+      { id: 'lucy',   name: 'Lucy',   gender: 'female', driveId: '14SGK7TNvlLuz8hOXxUJZ247WndYZKyVk' },
+      { id: 'john',   name: 'John',   gender: 'male',   driveId: '1sQo55FR2r48uCn4G-11sumyAK6WnCPWV' },
+      { id: 'sarah',  name: 'Sarah',  gender: 'female', driveId: '1-sVGy2Ub4pqquXvvTdEtnBRzlS6v0l_U' },
+      { id: 'mike',   name: 'Mike',   gender: 'male',   driveId: '1bmXMOPJ5HcYAvHiOHP3em2AiLwtknVPP' },
+      { id: 'kate',   name: 'Kate',   gender: 'female', driveId: '1Lp-jomyAPwfV8Xwsz2z0GPPnlL9wd5hG' },
+      { id: 'lily',   name: 'Lily',   gender: 'female', driveId: '10gYSEipXYpZhZeGSBBi0a9-JHx_QCptL' },
+      { id: 'ben',    name: 'Ben',    gender: 'male',   driveId: '1y-yaCLiVjZZcl7P2ndsBtAECs5IikTek' },
+      { id: 'emma',   name: 'Emma',   gender: 'female', driveId: '1L2Nz5KJlBtXkYfSj_thrvbo3k-m7reTi' },
+      { id: 'tom',    name: 'Tom',    gender: 'male',   driveId: '1sQn8Y4LOBsYsT8K2aMRloKdxNJRNIkmQ' },
+      { id: 'sophie', name: 'Sophie', gender: 'female', driveId: '1mMN7SXJsnZql0ZDNpqvBesd9uzlG0jpR' }
+    ];
+
+    const MEMBER_MAP = Object.fromEntries(FAMILY_MEMBERS.map(m => [m.id, m]));
+
+    const TREE_RELATIONS = [
+      { couple: ['robert', 'alice'], children: ['peter'] },
+      { couple: ['peter',  'mary'],  children: ['lucy', 'john'] },
+      { couple: ['george', 'helen'], children: ['sarah', 'mike'] },
+      { couple: ['david',  'lucy'],  children: ['lily', 'ben'] },
+      { couple: ['john',   'sarah'], children: ['emma', 'tom'] },
+      { couple: ['mike',   'kate'],  children: ['sophie'] }
+    ];
+
+    /* ============================================================
+       DISTINCT MALE & FEMALE SILHOUETTE SVGS
+       ============================================================ */
+    const SILHOUETTE_SVGS = {
+      male: `
+        <svg class="silhouette-svg male-sil" viewBox="0 0 64 72" aria-hidden="true">
+          <circle cx="32" cy="21" r="12.5" />
+          <path d="M11 64c0-13.8 9.2-22.5 21-22.5S53 50.2 53 64c0 2.2-1.8 4-4 4H15c-2.2 0-4-1.8-4-4z" />
+          <path d="M24 39.5l8 6 8-6" fill="none" stroke="#E0F2FE" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+      female: `
+        <svg class="silhouette-svg female-sil" viewBox="0 0 64 72" aria-hidden="true">
+          <path d="M18.5 26c0-10.5 5.8-18 13.5-18s13.5 7.5 13.5 18c0 5.6 2.5 10.4 2.5 13.8 0 2.5-2.2 3.6-4.6 3.6H20.6c-2.4 0-4.6-1.1-4.6-3.6 0-3.4 2.5-8.2 2.5-13.8z"/>
+          <circle cx="32" cy="22" r="10.8" />
+          <path d="M13 64c1.3-13 8.2-20.8 19-20.8S49.7 51 51 64c.2 2.2-1.5 4-3.8 4H16.8c-2.3 0-4-1.8-3.8-4z" />
+        </svg>`
+    };
+
+    /* ============================================================
+       SUBTLE, PLEASANT WEB AUDIO API SOUND EFFECTS
+       ============================================================ */
+    const SoundFX = (() => {
+      let ctx = null;
+      let enabled = true;
+
+      function getCtx() {
+        if (!ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) ctx = new AudioCtx();
+        }
+        if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+        return ctx;
+      }
+
+      function playTone(freq, duration, type = 'sine', volume = 0.06, delay = 0) {
+        if (!enabled) return;
+        const audioCtx = getCtx();
+        if (!audioCtx) return;
+        try {
+          const now = audioCtx.currentTime + delay;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + duration + 0.02);
+        } catch (e) {}
+      }
+
+      return {
+        toggle: () => {
+          enabled = !enabled;
+          if (enabled) playTone(520, 0.09, 'sine', 0.05);
+          return enabled;
+        },
+        pickup: () => {
+          playTone(480, 0.07, 'triangle', 0.05);
+          playTone(640, 0.06, 'sine', 0.035, 0.025);
+        },
+        place: () => {
+          playTone(415, 0.13, 'sine', 0.065);
+          playTone(622, 0.15, 'triangle', 0.05, 0.04);
+        },
+        remove: () => playTone(340, 0.09, 'sine', 0.045),
+        wrong: () => {
+          playTone(250, 0.14, 'sine', 0.06);
+          playTone(205, 0.2, 'triangle', 0.05, 0.085);
+        },
+        correctCheck: () => {
+          playTone(523.25, 0.15, 'sine', 0.065);
+          playTone(659.25, 0.18, 'sine', 0.065, 0.08);
+        },
+        win: () => {
+          [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((n, idx) => {
+            playTone(n, 0.6, 'sine', 0.065, idx * 0.08);
+          });
+        }
+      };
+    })();
+
+    /* ============================================================
+       GAME STATE & DOM REFERENCES
+       ============================================================ */
+    const state = {
+      trayOrder: [],
+      placements: {},
+      lockedSlots: new Set(),
+      selectedMemberId: null,
+      draggedMemberId: null,
+      dragSourceSlot: null
+    };
+
+    const treeViewport = document.getElementById('tree-viewport');
+    const treeTransformEl = document.getElementById('tree-canvas-transform');
+    const treeBoard = document.getElementById('tree-board');
+    const treeSvg = document.getElementById('tree-svg');
+    const trayScroll = document.getElementById('tray-scroll');
+    const trayTrack = document.getElementById('tray-track');
+    const traySlider = document.getElementById('tray-slider');
+    const trayCountEl = document.getElementById('tray-count');
+    const progressPill = document.getElementById('progress-pill');
+    const toastBanner = document.getElementById('toast-banner');
+    const zoomPercentEl = document.getElementById('zoom-percent');
+
+    /* ============================================================
+       ZOOM & PAN CONTROLLER (ZOOMED IN BY DEFAULT)
+       ============================================================ */
+    const ViewController = (() => {
+      let scale = 1.35;
+      let tx = 0;
+      let ty = 0;
+      const MIN_SCALE = 0.45;
+      const MAX_SCALE = 2.0;
+
+      let isPanning = false;
+      let panStartX = 0;
+      let panStartY = 0;
+      let startTx = 0;
+      let startTy = 0;
+
+      function applyTransform() {
+        treeTransformEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        zoomPercentEl.textContent = `${Math.round(scale * 100)}%`;
+      }
+
+      function clampScale(s) {
+        return Math.min(MAX_SCALE, Math.max(MIN_SCALE, s));
+      }
+
+      // Zoom around a specific viewport point (vx, vy)
+      function zoomAt(newScale, vx, vy) {
+        const clamped = clampScale(newScale);
+        const ratio = clamped / scale;
+        tx = vx - (vx - tx) * ratio;
+        ty = vy - (vy - ty) * ratio;
+        scale = clamped;
+        applyTransform();
+      }
+
+      // Center zoomed-in view nicely on Emma & her immediate family (John, Sarah, Emma, Tom)
+      function setInitialZoomedInView() {
+        const vpRect = treeViewport.getBoundingClientRect();
+        const boardW = treeBoard.offsetWidth || 1320;
+        const boardH = treeBoard.offsetHeight || 820;
+
+        scale = 1.35;
+        // Focus point around Generation 3–4 center (John, Sarah, Emma, Tom)
+        const focusX = boardW * 0.5;
+        const focusY = boardH * 0.72;
+        tx = vpRect.width / 2 - focusX * scale;
+        ty = vpRect.height / 2 - focusY * scale;
+        applyTransform();
+      }
+
+      // Fit entire 4-generation tree cleanly in viewport
+      function fitAll() {
+        const vpRect = treeViewport.getBoundingClientRect();
+        const boardW = treeBoard.offsetWidth || 1320;
+        const boardH = treeBoard.offsetHeight || 820;
+        const pad = 28;
+        const fitScale = Math.min((vpRect.width - pad) / boardW, (vpRect.height - pad) / boardH, 1.0);
+        scale = clampScale(fitScale);
+        tx = (vpRect.width - boardW * scale) / 2;
+        ty = (vpRect.height - boardH * scale) / 2;
+        applyTransform();
+      }
+
+      // Mouse-wheel zoom on tree viewport
+      treeViewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = treeViewport.getBoundingClientRect();
+        const vx = e.clientX - rect.left;
+        const vy = e.clientY - rect.top;
+        const factor = e.deltaY < 0 ? 1.1 : 0.91;
+        zoomAt(scale * factor, vx, vy);
+      }, { passive: false });
+
+      // Click-and-drag panning on tree background (never interferes with cards/slots/buttons)
+      treeViewport.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        if (e.target.closest('.portrait-card') || e.target.closest('.tree-slot') || e.target.closest('.zoom-controls')) {
+          return;
+        }
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        startTx = tx;
+        startTy = ty;
+        treeViewport.classList.add('is-panning');
+        treeViewport.setPointerCapture(e.pointerId);
+      });
+
+      treeViewport.addEventListener('pointermove', (e) => {
+        if (!isPanning) return;
+        tx = startTx + (e.clientX - panStartX);
+        ty = startTy + (e.clientY - panStartY);
+        applyTransform();
+      });
+
+      function endPan(e) {
+        if (!isPanning) return;
+        isPanning = false;
+        treeViewport.classList.remove('is-panning');
+        try { treeViewport.releasePointerCapture(e.pointerId); } catch (err) {}
+      }
+      treeViewport.addEventListener('pointerup', endPan);
+      treeViewport.addEventListener('pointercancel', endPan);
+
+      // Zoom buttons
+      document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        const rect = treeViewport.getBoundingClientRect();
+        zoomAt(scale * 1.18, rect.width / 2, rect.height / 2);
+      });
+
+      document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        const rect = treeViewport.getBoundingClientRect();
+        zoomAt(scale / 1.18, rect.width / 2, rect.height / 2);
+      });
+
+      document.getElementById('btn-zoom-fit').addEventListener('click', fitAll);
+
+      return { setInitialZoomedInView, fitAll, getScale: () => scale };
+    })();
+
+    /* ============================================================
+       HELPERS: SHUFFLE, TOAST, LOCAL-FIRST IMAGE LOADER
+       ============================================================ */
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    let toastTimer = null;
+    function showToast(message, tone = 'neutral') {
+      toastBanner.textContent = message;
+      toastBanner.style.color = tone === 'success' ? '#047857' : tone === 'warn' ? '#BE123C' : '#451A03';
+      toastBanner.style.borderColor = tone === 'success'
+        ? '#34D399'
+        : tone === 'warn'
+        ? '#FDA4AF'
+        : '#FCD34D';
+      toastBanner.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastBanner.classList.remove('show'), 3200);
+    }
+
+    /**
+     * Loads ./family/{Name}.png first, then silently falls back to Google Drive URLs,
+     * and finally to a clean illustrated avatar if offline/blocked.
+     */
+    function createPortraitImage(member) {
+      const id = member.driveId;
+      const urls = [
+        `./family/${member.name}.png`,
+        `https://lh3.googleusercontent.com/d/${id}=w400`,
+        `https://drive.google.com/thumbnail?id=${id}&sz=w400`
+      ];
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'portrait-img-box';
+
+      const img = document.createElement('img');
+      img.alt = member.name;
+      img.loading = 'eager';
+      img.referrerPolicy = 'no-referrer';
+
+      let attempt = 0;
+      img.src = urls[attempt];
+
+      img.onerror = () => {
+        attempt++;
+        if (attempt < urls.length) {
+          img.src = urls[attempt];
+        } else {
+          const bg = member.gender === 'female' ? '#FFE4E6' : '#E0F2FE';
+          const accent = member.gender === 'female' ? '#E11D48' : '#0284C7';
+          wrapper.innerHTML = `
+            <svg viewBox="0 0 80 80" class="w-full h-full" aria-hidden="true">
+              <rect width="80" height="80" fill="${bg}"/>
+              <circle cx="40" cy="30" r="14" fill="${accent}" opacity="0.82"/>
+              <path d="M16 74c2-15 11-24 24-24s22 9 24 24" fill="${accent}" opacity="0.82"/>
+              <text x="40" y="36" text-anchor="middle" fill="#FFFFFF" font-family="Fredoka, sans-serif" font-size="16" font-weight="700">${member.name[0]}</text>
+            </svg>`;
+        }
+      };
+
+      wrapper.appendChild(img);
+      return wrapper;
+    }
+
+    function createPortraitCard(memberId, inSlot = false, isLocked = false, slotId = null) {
+      const member = MEMBER_MAP[memberId];
+      const card = document.createElement('div');
+      card.className = 'portrait-card' + (inSlot ? ' in-slot' : '');
+      card.dataset.memberId = memberId;
+      card.draggable = !isLocked;
+
+      if (state.selectedMemberId === memberId) {
+        card.classList.add('selected-card');
+      }
+
+      card.appendChild(createPortraitImage(member));
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'portrait-name';
+      nameEl.textContent = member.name;
+      card.appendChild(nameEl);
+
+      if (!isLocked) {
+        card.addEventListener('dragstart', (e) => {
+          state.draggedMemberId = memberId;
+          state.dragSourceSlot = inSlot ? slotId : null;
+          state.selectedMemberId = null;
+          updateSelectableHighlights();
+          SoundFX.pickup();
+          e.dataTransfer.setData('text/plain', memberId);
+          e.dataTransfer.effectAllowed = 'move';
+          setTimeout(() => { card.style.opacity = '0.45'; }, 0);
+        });
+
+        card.addEventListener('dragend', () => {
+          card.style.opacity = '1';
+          state.draggedMemberId = null;
+          state.dragSourceSlot = null;
+          document.querySelectorAll('.tree-slot.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (inSlot && slotId) {
+            // Clicking a placed (unlocked) card returns it to the top tray
+            returnMemberToTray(slotId);
+            SoundFX.remove();
+            return;
+          }
+          if (state.selectedMemberId === memberId) {
+            state.selectedMemberId = null;
+          } else {
+            state.selectedMemberId = memberId;
+            SoundFX.pickup();
+          }
+          renderTray();
+          renderSlots();
+        });
+      }
+
+      return card;
+    }
+
+    /* ============================================================
+       RENDER TREE SLOTS & TOP TRAY
+       ============================================================ */
+    function renderSlots() {
+      document.querySelectorAll('.tree-slot').forEach(slot => {
+        const slotId = slot.dataset.slotId;
+        const gender = slot.dataset.gender;
+        const isMe = slot.dataset.isMe === 'true';
+        const placedId = state.placements[slotId];
+        const isLocked = state.lockedSlots.has(slotId);
+
+        slot.innerHTML = '';
+        slot.classList.toggle('has-card', Boolean(placedId));
+        slot.classList.toggle('locked-correct', isLocked);
+        slot.classList.remove('wrong-shake');
+
+        if (isMe) {
+          const badge = document.createElement('div');
+          badge.className = 'me-badge';
+          badge.textContent = 'Me';
+          slot.appendChild(badge);
+        }
+
+        if (placedId) {
+          const card = createPortraitCard(placedId, true, isLocked, slotId);
+          slot.appendChild(card);
+
+          if (isLocked) {
+            const checkBadge = document.createElement('div');
+            checkBadge.className = 'correct-badge';
+            checkBadge.innerHTML = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+            slot.appendChild(checkBadge);
+          }
+        } else {
+          const sil = document.createElement('div');
+          sil.className = 'silhouette-wrap';
+          sil.innerHTML = SILHOUETTE_SVGS[gender];
+          slot.appendChild(sil);
+        }
+      });
+
+      updateSelectableHighlights();
+      updateProgressCounters();
+    }
+
+    function updateSelectableHighlights() {
+      const hasSel = Boolean(state.selectedMemberId);
+      document.querySelectorAll('.tree-slot').forEach(slot => {
+        const slotId = slot.dataset.slotId;
+        const canReceive = hasSel && !state.lockedSlots.has(slotId);
+        slot.classList.toggle('selectable-target', canReceive && !state.placements[slotId]);
+      });
+    }
+
+    function renderTray() {
+      trayTrack.innerHTML = '';
+      if (state.trayOrder.length === 0) {
+        const msg = document.createElement('div');
+        msg.className = 'font-display text-base font-semibold text-emerald-700 px-6 py-4';
+        msg.textContent = 'All 17 family members are on the tree! Click "Check Answers" to see your score.';
+        trayTrack.appendChild(msg);
+      } else {
+        state.trayOrder.forEach(memberId => {
+          trayTrack.appendChild(createPortraitCard(memberId, false, false, null));
+        });
+      }
+      updateProgressCounters();
+      syncSliderFromScroll();
+    }
+
+    function updateProgressCounters() {
+      const placedCount = Object.keys(state.placements).length;
+      progressPill.textContent = `${placedCount} / 17`;
+      trayCountEl.textContent = `(${state.trayOrder.length} left)`;
+    }
+
+    /* ============================================================
+       PLACEMENT, SWAPPING & RETURN LOGIC
+       ============================================================ */
+    function placeMemberInSlot(memberId, targetSlotId) {
+      if (!memberId || !targetSlotId || state.lockedSlots.has(targetSlotId)) return;
+
+      let prevSlotId = null;
+      for (const [sId, mId] of Object.entries(state.placements)) {
+        if (mId === memberId) { prevSlotId = sId; break; }
+      }
+      if (prevSlotId === targetSlotId) {
+        state.selectedMemberId = null;
+        renderSlots();
+        return;
+      }
+
+      const existingInTarget = state.placements[targetSlotId];
+      if (prevSlotId) {
+        delete state.placements[prevSlotId];
+        if (existingInTarget) state.placements[prevSlotId] = existingInTarget;
+      } else {
+        state.trayOrder = state.trayOrder.filter(id => id !== memberId);
+        if (existingInTarget) state.trayOrder.unshift(existingInTarget);
+      }
+
+      state.placements[targetSlotId] = memberId;
+      state.selectedMemberId = null;
+      SoundFX.place();
+      renderTray();
+      renderSlots();
+    }
+
+    function returnMemberToTray(slotId) {
+      if (state.lockedSlots.has(slotId)) return;
+      const memberId = state.placements[slotId];
+      if (!memberId) return;
+      delete state.placements[slotId];
+      if (!state.trayOrder.includes(memberId)) state.trayOrder.push(memberId);
+      state.selectedMemberId = null;
+      renderTray();
+      renderSlots();
+    }
+
+    function bindSlotEvents() {
+      document.querySelectorAll('.tree-slot').forEach(slot => {
+        const slotId = slot.dataset.slotId;
+
+        slot.addEventListener('dragover', (e) => {
+          if (state.lockedSlots.has(slotId)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          slot.classList.add('drag-over');
+        });
+
+        slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('drag-over');
+          if (state.lockedSlots.has(slotId)) return;
+          const memberId = e.dataTransfer.getData('text/plain') || state.draggedMemberId;
+          if (memberId) placeMemberInSlot(memberId, slotId);
+        });
+
+        slot.addEventListener('click', () => {
+          if (state.lockedSlots.has(slotId)) return;
+          if (state.selectedMemberId) {
+            placeMemberInSlot(state.selectedMemberId, slotId);
+          }
+        });
+      });
+
+      // Drop back onto top tray
+      trayScroll.addEventListener('dragover', (e) => {
+        if (state.dragSourceSlot) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      });
+
+      trayScroll.addEventListener('drop', (e) => {
+        if (state.dragSourceSlot) {
+          e.preventDefault();
+          returnMemberToTray(state.dragSourceSlot);
+          SoundFX.remove();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.portrait-card') && !e.target.closest('.tree-slot')) {
+          if (state.selectedMemberId) {
+            state.selectedMemberId = null;
+            renderTray();
+            renderSlots();
+          }
+        }
+      });
+    }
+
+    /* ============================================================
+       CHECK ANSWERS & FLY-BACK ANIMATION TO TOP TRAY
+       ============================================================ */
+    function checkAnswers() {
+      const placedEntries = Object.entries(state.placements);
+      if (placedEntries.length === 0) {
+        showToast('Place some family members on the tree first!', 'neutral');
+        return;
+      }
+
+      const newlyCorrect = [];
+      const wrongList = [];
+
+      placedEntries.forEach(([slotId, memberId]) => {
+        if (state.lockedSlots.has(slotId)) return;
+        if (slotId === memberId) {
+          state.lockedSlots.add(slotId);
+          newlyCorrect.push(slotId);
+        } else {
+          wrongList.push({ slotId, memberId });
+        }
+      });
+
+      if (wrongList.length === 0 && state.lockedSlots.size === FAMILY_MEMBERS.length) {
+        renderSlots();
+        SoundFX.win();
+        launchConfetti();
+        setTimeout(() => openModal('victory-modal'), 350);
+        return;
+      }
+
+      if (newlyCorrect.length > 0 && wrongList.length === 0) {
+        renderSlots();
+        SoundFX.correctCheck();
+        showToast(`Awesome! ${state.lockedSlots.size} of 17 right so far. Keep going!`, 'success');
+        return;
+      }
+
+      if (wrongList.length > 0) {
+        SoundFX.wrong();
+        if (newlyCorrect.length > 0) renderSlots();
+
+        wrongList.forEach(({ slotId }) => {
+          const slotEl = document.querySelector(`.tree-slot[data-slot-id="${slotId}"]`);
+          if (slotEl) slotEl.classList.add('wrong-shake');
+        });
+
+        const totalRight = state.lockedSlots.size;
+        const msg = totalRight > 0
+          ? `${totalRight} right! Try placing the other ${wrongList.length} again.`
+          : `Not quite yet! Listen again and try those ${wrongList.length} cards.`;
+        showToast(msg, 'warn');
+
+        setTimeout(() => animateWrongCardsBack(wrongList), 460);
+      } else {
+        showToast(`${state.lockedSlots.size} of 17 placed correctly so far!`, 'success');
+      }
+    }
+
+    function animateWrongCardsBack(wrongList) {
+      const trayRect = trayScroll.getBoundingClientRect();
+      const targetX = trayRect.left + trayRect.width / 2;
+      const targetY = trayRect.top + trayRect.height / 2;
+
+      wrongList.forEach(({ slotId, memberId }, index) => {
+        const slotEl = document.querySelector(`.tree-slot[data-slot-id="${slotId}"]`);
+        const rect = slotEl ? slotEl.getBoundingClientRect() : null;
+
+        delete state.placements[slotId];
+
+        if (rect) {
+          const clone = createPortraitCard(memberId, false, false, null);
+          clone.classList.add('flying-card');
+          clone.style.left = `${rect.left + (rect.width - 122) / 2}px`;
+          clone.style.top = `${rect.top + (rect.height - 148) / 2}px`;
+          clone.style.opacity = '1';
+          document.body.appendChild(clone);
+
+          const dx = targetX - (rect.left + rect.width / 2) + (index - wrongList.length / 2) * 28;
+          const dy = targetY - (rect.top + rect.height / 2);
+
+          requestAnimationFrame(() => {
+            clone.style.transform = `translate(${dx}px, ${dy}px) scale(0.75) rotate(${(index % 2 === 0 ? -1 : 1) * 9}deg)`;
+            clone.style.opacity = '0';
+          });
+
+          setTimeout(() => clone.remove(), 600);
+        }
+
+        if (!state.trayOrder.includes(memberId)) state.trayOrder.push(memberId);
+      });
+
+      renderSlots();
+      setTimeout(renderTray, 260);
+    }
+
+    /* ============================================================
+       DYNAMIC CHESTNUT BROWN SVG CONNECTORS (UNSCALED COORDS)
+       ============================================================ */
+    function drawTreeLines() {
+      const scale = ViewController.getScale() || 1;
+      const boardRect = treeBoard.getBoundingClientRect();
+      if (boardRect.width === 0 || boardRect.height === 0) return;
+
+      // Convert screen rect into unscaled local coordinates of #tree-board
+      const getBox = (slotId) => {
+        const el = document.querySelector(`.tree-slot[data-slot-id="${slotId}"]`);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        const left = (r.left - boardRect.left) / scale;
+        const right = (r.right - boardRect.left) / scale;
+        const top = (r.top - boardRect.top) / scale;
+        const bottom = (r.bottom - boardRect.top) / scale;
+        return { left, right, top, bottom, cx: (left + right) / 2, cy: (top + bottom) / 2 };
+      };
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      treeSvg.innerHTML = '';
+
+      const defs = document.createElementNS(svgNS, 'defs');
+      defs.innerHTML = `
+        <filter id="branchShadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#5A2D12" flood-opacity="0.26"/>
+        </filter>`;
+      treeSvg.appendChild(defs);
+
+      const gLines = document.createElementNS(svgNS, 'g');
+      gLines.setAttribute('filter', 'url(#branchShadow)');
+      treeSvg.appendChild(gLines);
+
+      function addPath(d) {
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#7C4422');
+        path.setAttribute('stroke-width', '4.5');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        gLines.appendChild(path);
+      }
+
+      TREE_RELATIONS.forEach(rel => {
+        const a = getBox(rel.couple[0]);
+        const b = getBox(rel.couple[1]);
+        if (!a || !b) return;
+
+        const leftBox = a.cx < b.cx ? a : b;
+        const rightBox = a.cx < b.cx ? b : a;
+        const midX = (leftBox.right + rightBox.left) / 2;
+        const midY = (leftBox.cy + rightBox.cy) / 2;
+
+        // 1. Marriage line
+        addPath(`M ${leftBox.right} ${midY} L ${rightBox.left} ${midY}`);
+
+        // 2. Parent-to-child branches
+        const childBoxes = rel.children.map(getBox).filter(Boolean);
+        if (childBoxes.length === 1) {
+          const c = childBoxes[0];
+          if (Math.abs(midX - c.cx) < 2) {
+            addPath(`M ${midX} ${midY} L ${c.cx} ${c.top}`);
+          } else {
+            const branchY = (Math.max(leftBox.bottom, rightBox.bottom) + c.top) / 2;
+            addPath(`M ${midX} ${midY} L ${midX} ${branchY} L ${c.cx} ${branchY} L ${c.cx} ${c.top}`);
+          }
+        } else if (childBoxes.length > 1) {
+          const parentBottom = Math.max(leftBox.bottom, rightBox.bottom);
+          const childTop = Math.min(...childBoxes.map(c => c.top));
+          const branchY = parentBottom + (childTop - parentBottom) * 0.5;
+          const radius = 10;
+
+          addPath(`M ${midX} ${midY} L ${midX} ${branchY}`);
+          childBoxes.forEach(c => {
+            const dir = c.cx < midX ? -1 : 1;
+            const dist = Math.abs(c.cx - midX);
+            const r = Math.min(radius, dist / 2, (c.top - branchY) / 2);
+            addPath(`M ${midX} ${branchY} L ${c.cx - dir * r} ${branchY} Q ${c.cx} ${branchY} ${c.cx} ${branchY + r} L ${c.cx} ${c.top}`);
+          });
+        }
+
+        // 3. Cute golden-rimmed heart marriage badge
+        const badgeG = document.createElementNS(svgNS, 'g');
+        badgeG.setAttribute('transform', `translate(${midX}, ${midY})`);
+        badgeG.innerHTML = `
+          <circle r="11" fill="#FEF3C7" stroke="#7C4422" stroke-width="2.5"/>
+          <path d="M0 4.5 C-0.4 4.2 -5.2 1.2 -5.2 -1.9 C-5.2 -3.6 -3.8 -4.8 -2.2 -4.8 C-1.1 -4.8 -0.3 -4.2 0 -3.4 C0.3 -4.2 1.1 -4.8 2.2 -4.8 C3.8 -4.8 5.2 -3.6 5.2 -1.9 C5.2 1.2 0.4 4.2 0 4.5 Z" fill="#F43F5E"/>
+        `;
+        gLines.appendChild(badgeG);
+      });
+    }
+
+    /* ============================================================
+       TOP TRAY HORIZONTAL SLIDER & ARROWS
+       ============================================================ */
+    function syncSliderFromScroll() {
+      const maxScroll = trayScroll.scrollWidth - trayScroll.clientWidth;
+      if (maxScroll <= 1) {
+        traySlider.value = 0;
+        traySlider.disabled = true;
+        traySlider.style.opacity = '0.4';
+      } else {
+        traySlider.disabled = false;
+        traySlider.style.opacity = '1';
+        traySlider.value = (trayScroll.scrollLeft / maxScroll) * 100;
+      }
+    }
+
+    traySlider.addEventListener('input', () => {
+      const maxScroll = trayScroll.scrollWidth - trayScroll.clientWidth;
+      if (maxScroll > 0) trayScroll.scrollLeft = (parseFloat(traySlider.value) / 100) * maxScroll;
+    });
+
+    trayScroll.addEventListener('scroll', syncSliderFromScroll, { passive: true });
+
+    trayScroll.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        trayScroll.scrollLeft += e.deltaY * 1.15;
+      }
+    }, { passive: false });
+
+    document.getElementById('tray-left').addEventListener('click', () => {
+      trayScroll.scrollBy({ left: -280, behavior: 'smooth' });
+    });
+
+    document.getElementById('tray-right').addEventListener('click', () => {
+      trayScroll.scrollBy({ left: 280, behavior: 'smooth' });
+    });
+
+    /* ============================================================
+       CLEAN AUDIO PLAYER (./audio.mp3 + SILENT DRIVE FALLBACK)
+       ============================================================ */
+    const AudioController = (() => {
+      const audioEl = document.getElementById('story-audio');
+      const btnPlay = document.getElementById('btn-play');
+      const iconPlay = document.getElementById('icon-play');
+      const iconPause = document.getElementById('icon-pause');
+      const btnRewind = document.getElementById('btn-rewind');
+      const btnForward = document.getElementById('btn-forward');
+      const seekBar = document.getElementById('audio-seek');
+      const timeCurrent = document.getElementById('audio-time-current');
+      const timeTotal = document.getElementById('audio-time-total');
+
+      const AUDIO_SOURCES = [
+        './audio.mp3',
+        'https://docs.google.com/uc?export=download&id=11rwSAua5mXlwulOP7daQUau9TiK91X-N'
+      ];
+      let srcIndex = 0;
+
+      function formatTime(sec) {
+        if (!isFinite(sec) || sec < 0) return '0:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      }
+
+      function setPlayIcons(isPlaying) {
+        iconPlay.classList.toggle('hidden', isPlaying);
+        iconPause.classList.toggle('hidden', !isPlaying);
+        btnPlay.setAttribute('aria-label', isPlaying ? 'Pause audio' : 'Play audio');
+      }
+
+      function loadSource(idx) {
+        audioEl.src = AUDIO_SOURCES[idx];
+        audioEl.load();
+      }
+
+      audioEl.addEventListener('error', () => {
+        if (srcIndex + 1 < AUDIO_SOURCES.length) {
+          srcIndex++;
+          loadSource(srcIndex);
+        }
+      });
+
+      audioEl.addEventListener('loadedmetadata', () => {
+        timeTotal.textContent = formatTime(audioEl.duration);
+      });
+
+      audioEl.addEventListener('timeupdate', () => {
+        if (audioEl.duration > 0) {
+          seekBar.value = (audioEl.currentTime / audioEl.duration) * 100;
+          timeCurrent.textContent = formatTime(audioEl.currentTime);
+        }
+      });
+
+      audioEl.addEventListener('ended', () => setPlayIcons(false));
+
+      btnPlay.addEventListener('click', () => {
+        if (audioEl.paused) {
+          setPlayIcons(true);
+          audioEl.play().catch(() => {
+            if (srcIndex + 1 < AUDIO_SOURCES.length) {
+              srcIndex++;
+              loadSource(srcIndex);
+              audioEl.play().catch(() => setPlayIcons(false));
+            } else {
+              setPlayIcons(false);
+            }
+          });
+        } else {
+          audioEl.pause();
+          setPlayIcons(false);
+        }
+      });
+
+      btnRewind.addEventListener('click', () => {
+        audioEl.currentTime = Math.max(0, audioEl.currentTime - 5);
+      });
+
+      btnForward.addEventListener('click', () => {
+        if (isFinite(audioEl.duration)) {
+          audioEl.currentTime = Math.min(audioEl.duration, audioEl.currentTime + 5);
+        }
+      });
+
+      seekBar.addEventListener('input', () => {
+        if (isFinite(audioEl.duration)) {
+          audioEl.currentTime = (parseFloat(seekBar.value) / 100) * audioEl.duration;
+        }
+      });
+
+      loadSource(0);
+    })();
+
+    /* ============================================================
+       MODALS & CONFETTI CELEBRATION
+       ============================================================ */
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function launchConfetti() {
+      const colors = ['#F59E0B', '#10B981', '#0EA5E9', '#F43F5E', '#A855F7', '#FDE047'];
+      for (let i = 0; i < 48; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        const size = 9 + Math.random() * 9;
+        piece.style.width = `${size}px`;
+        piece.style.height = `${size * 0.65}px`;
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.backgroundColor = colors[i % colors.length];
+        piece.style.borderRadius = i % 2 === 0 ? '50% 0 50% 0' : '3px';
+        piece.style.animationDuration = `${2.5 + Math.random() * 2.2}s`;
+        piece.style.animationDelay = `${Math.random() * 0.5}s`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 5200);
+      }
+    }
+
+    /* ============================================================
+       INITIALIZATION & UI EVENTS
+       ============================================================ */
+    function initGame() {
+      state.trayOrder = shuffleArray(FAMILY_MEMBERS.map(m => m.id));
+      state.placements = {};
+      state.lockedSlots.clear();
+      state.selectedMemberId = null;
+      trayScroll.scrollLeft = 0;
+
+      renderSlots();
+      renderTray();
+      requestAnimationFrame(() => {
+        ViewController.setInitialZoomedInView();
+        drawTreeLines();
+      });
+    }
+
+    document.getElementById('btn-check').addEventListener('click', checkAnswers);
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      SoundFX.remove();
+      initGame();
+      showToast('Game reset! Ready to try again.', 'neutral');
+    });
+
+    document.getElementById('btn-transcript').addEventListener('click', () => openModal('transcript-modal'));
+    document.getElementById('btn-close-transcript').addEventListener('click', () => closeModal('transcript-modal'));
+    document.getElementById('btn-close-transcript-bottom').addEventListener('click', () => closeModal('transcript-modal'));
+    document.getElementById('transcript-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'transcript-modal') closeModal('transcript-modal');
+    });
+
+    document.getElementById('btn-victory-view').addEventListener('click', () => closeModal('victory-modal'));
+    document.getElementById('btn-play-again').addEventListener('click', () => {
+      closeModal('victory-modal');
+      initGame();
+    });
+
+    document.getElementById('btn-sfx').addEventListener('click', () => {
+      const on = SoundFX.toggle();
+      document.getElementById('icon-sfx-on').classList.toggle('hidden', !on);
+      document.getElementById('icon-sfx-off').classList.toggle('hidden', on);
+      showToast(on ? 'Sound effects on.' : 'Sound effects muted.', 'neutral');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal('transcript-modal');
+        closeModal('victory-modal');
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      drawTreeLines();
+      syncSliderFromScroll();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      bindSlotEvents();
+      initGame();
+      setTimeout(drawTreeLines, 160);
+    });
+  </script>
+</body>
+</html>
